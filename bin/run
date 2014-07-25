@@ -14,9 +14,6 @@ import sys
 #if not cur_dir in sys.path:
     #sys.path.insert(0, cur_dir)
 
-# TODO: Remove!
-sys.path.append('/web/runscript')
-
 from runscript import cli
 
 if __name__ == '__main__':

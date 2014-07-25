@@ -44,7 +44,7 @@ def process_env_option():
 def module_is_importable(path):
     mod_names = path.split('.')
     mod = None
-    for count, mod_name in enumerate(mod_names):
+    for mod_name in mod_names:
         if mod is None:
             path = None
         else:

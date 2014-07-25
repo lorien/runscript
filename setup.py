@@ -18,21 +18,18 @@ setup(
     scripts = ('bin/run',),
 
     license = "MIT",
-    keywords = "script cli",
+    keywords = "script cli utility run launch task",
     classifiers = (
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        #'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: MIT License',
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        # ???
-        #'Programming Language :: Python :: 3.3',
-        #'Programming Language :: Python :: Implementation :: CPython',
-        #'Topic :: Software Development :: Libraries :: Application Frameworks',
-        #'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Utilities',
     ),
 )
