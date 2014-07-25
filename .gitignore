@@ -1,0 +1,8 @@
+*.pyc
+*.swp
+*.swo
+*.orig
+*.egg-info/
+
+# setuptools
+dist/
