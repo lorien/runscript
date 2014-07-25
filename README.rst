@@ -23,4 +23,8 @@ Suppose you need to save some data from database into text file. For example, yo
 
 Few words about what is going here. The value of `parser` option that is passed to `setup_arg_parser` is the instance of `ArgumentParser` class. You can add any option you need or just do not specify `setup_arg_parser` in you script. If you define some custom options then their values will be passed in `**kwargs` arguments to your `main` function.
 
+OK, now you can run the following command from the console::
+
+    $ run dump
+
 That's all :) Of course this is not the rocket science, but I found that this simple script launcher saved me a lot of time.
