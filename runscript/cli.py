@@ -9,6 +9,7 @@ from runscript.lock import assert_lock
 #from grab.util.py3k_support import *
 
 logger = logging.getLogger('runscript.cli')
+PY3K = False
 
 def activate_env(env_path):
     activate_script = os.path.join(env_path, 'bin/activate_this.py')
