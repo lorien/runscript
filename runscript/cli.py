@@ -106,15 +106,20 @@ def process_command_line():
             action_mod = __import__(imp_path, None, None, ['foo'])
 
     if action_mod is None:
-        sys.stderr.write('Could not find the package to import %s module' % action_name)
+        sys.stderr.write('Could not find the package to import %s module\n' % action_name)
         sys.exit(1)
 
     if hasattr(action_mod, 'setup_arg_parser'):
         action_mod.setup_arg_parser(parser)
     args, trash = parser.parse_known_args()
 
-    if args.lock_key is not None:
-        lock_path = 'var/run/%s.lock' % args.lock_key
+    if hasattr(action_mod, 'get_lock_key'):
+        lock_key = action_mod.get_lock_key(**vars(args))
+    else:
+        lock_key = args.lock_key
+
+    if lock_key is not None:
+        lock_path = 'var/run/%s.lock' % lock_key
         print 'Trying to lock file: %s' % lock_path
         assert_lock(lock_path)
 
