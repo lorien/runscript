@@ -82,10 +82,9 @@ def process_command_line():
         os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
     try:
         from django.conf import settings
+        settings.DEBUG = False
     except Exception:
         pass
-    else:
-        settings.DEBUG = False
 
     # Setup logging
     logging_level = getattr(logging, args.logging_level.upper())
