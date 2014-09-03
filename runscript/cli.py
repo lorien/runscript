@@ -69,7 +69,7 @@ def process_command_line():
     parser = ArgumentParser()
     parser.add_argument('action', type=str)
     parser.add_argument('--logging-level', default='debug')
-    #parser.add_argument('--lock-key')
+    parser.add_argument('--lock-key')
     #parser.add_argument('--ignore-lock', action='store_true', default=False)
     parser.add_argument('--settings', type=str, default='settings')
     parser.add_argument('--env', type=str)
@@ -114,21 +114,10 @@ def process_command_line():
         action_mod.setup_arg_parser(parser)
     args, trash = parser.parse_known_args()
 
-    # TODO: enable lock-file processing
-    #lock_key = None
-    #if not args.slave:
-        #if not args.ignore_lock:
-            #if not args.lock_key:
-                #if hasattr(action_mod, 'setup_lock_key'):
-                    #lock_key = action_mod.setup_lock_key(action_name, args)
-                #else:
-                    #lock_key = command_key
-            #else:
-                #lock_key = args.lock_key
-    #if lock_key is not None:
-        #lock_path = 'var/run/%s.lock' % lock_key
-        #print 'Trying to lock file: %s' % lock_path
-        #assert_lock(lock_path)
+    if args.lock_key is not None:
+        lock_path = 'var/run/%s.lock' % args.lock_key
+        print 'Trying to lock file: %s' % lock_path
+        assert_lock(lock_path)
 
     #logger.debug('Executing %s action' % action_name)
     try:
