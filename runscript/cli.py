@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import logging
 import sys 
 import imp
+from ConfigParser import RawConfigParser, NoOptionError
 
 from runscript.lock import assert_lock
 #from runscript.config import load_config
@@ -59,6 +60,28 @@ def module_is_importable(path):
     return True
 
 
+def load_config():
+    cur_dir = os.getcwd()
+    config_path = os.path.join(cur_dir, 'run.ini')
+
+    config = {}
+
+    if os.path.exists(config_path):
+        parser = RawConfigParser()
+        parser.read(config_path)
+        try:
+            config['search_path'] = [x.strip() for x in parser.get('global', 'search_path').split(',')]
+        except NoOptionError:
+            pass
+
+    if not 'search_path' in config:
+        config = {
+            'search_path': ['grab.script', 'script'],
+        }
+
+    return config
+    
+
 def process_command_line():
     # Add current directory to python path
     cur_dir = os.path.realpath(os.getcwd())
@@ -97,10 +120,11 @@ def process_command_line():
     # Setup action handler
     action_name = args.action
 
-    search_paths = ('grab.script', 'script')
+    config = load_config()
+
     action_mod = None
 
-    for path in search_paths:
+    for path in config['search_path']:
         imp_path = '%s.%s' % (path, action_name)
         if module_is_importable(imp_path):
             action_mod = __import__(imp_path, None, None, ['foo'])
