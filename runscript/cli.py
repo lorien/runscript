@@ -116,6 +116,10 @@ def process_command_line():
         from django.conf import settings
         settings.DEBUG = False
 
+    if config['global'].get('django_setup') == 'yes':
+        import django
+        django.setup()
+
     # Setup action handler
     action_name = args.action
     action_mod = None
