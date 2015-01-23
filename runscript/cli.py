@@ -3,7 +3,10 @@ from argparse import ArgumentParser
 import logging
 import sys 
 import imp
-from ConfigParser import RawConfigParser, NoOptionError
+try:
+    from ConfigParser import RawConfigParser, NoOptionError
+except ImportError:
+    from configparser import RawConfigParser, NoOptionError
 
 from runscript.lock import assert_lock
 #from runscript.config import load_config
@@ -149,7 +152,7 @@ def process_command_line():
 
     if lock_key is not None:
         lock_path = 'var/run/%s.lock' % lock_key
-        print 'Trying to lock file: %s' % lock_path
+        print('Trying to lock file: {}',  lock_path)
         assert_lock(lock_path)
 
     #logger.debug('Executing %s action' % action_name)
