@@ -48,18 +48,14 @@ def process_env_option():
 
 def module_is_importable(path):
     mod_names = path.split('.')
-    mod = None
+    path = None
     for mod_name in mod_names:
-        if mod is None:
-            path = None
-        else:
-            path = mod.__path__
         try:
             mod_file, mod_path, mod_info = imp.find_module(mod_name, path)
         except ImportError:
             return False
         else:
-            mod = imp.load_module(mod_name, mod_file, mod_path, mod_info)
+            path = [mod_path]
     return True
 
 
