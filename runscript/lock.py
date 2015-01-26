@@ -60,7 +60,6 @@ def assert_lock(fname):
     If file is locked then terminate program else lock file.
     """
 
-    logger.debug('Trying to lock: %s' % fname)
     if not set_lock(fname):
-        logger.error(u'%s is already locked. Terminating.' % fname)
+        logger.error('File {} is already locked. Terminating.'.format(fname))
         sys.exit()

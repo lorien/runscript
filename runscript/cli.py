@@ -9,21 +9,9 @@ except ImportError:
     from configparser import RawConfigParser, NoOptionError
 
 from runscript.lock import assert_lock
-#from runscript.config import load_config
-#from grab.util.py3k_support import *
+
 
 logger = logging.getLogger('runscript.cli')
-PY3K = False
-
-def activate_env(env_path):
-    activate_script = os.path.join(env_path, 'bin/activate_this.py')
-    # py3 hack
-    if PY3K:
-        exec(compile(open(activate_script).read(), activate_script, 'exec'),
-             dict(__file__=activate_script))
-    else:
-        execfile(activate_script, dict(__file__=activate_script))
-
 
 def setup_logging(action, level, clear_handlers=False):
     root = logging.getLogger()
@@ -36,14 +24,6 @@ def setup_logging(action, level, clear_handlers=False):
     hdl = logging.StreamHandler()
     hdl.setLevel(level)
     root.addHandler(hdl)
-
-
-def process_env_option():
-    parser = ArgumentParser()
-    parser.add_argument('--env')
-    args, trash = parser.parse_known_args()
-    if args.env:
-        activate_env(args.env)
 
 
 def module_is_importable(path):
@@ -92,8 +72,6 @@ def process_command_line():
     # Add current directory to python path
     cur_dir = os.path.realpath(os.getcwd())
     sys.path.insert(0, cur_dir)
-
-    process_env_option()
 
     parser = ArgumentParser()
     parser.add_argument('action', type=str)
@@ -148,10 +126,9 @@ def process_command_line():
 
     if lock_key is not None:
         lock_path = 'var/run/%s.lock' % lock_key
-        print('Trying to lock file: {}',  lock_path)
+        logging.debug('Trying to lock file: {}'.format(lock_path))
         assert_lock(lock_path)
 
-    #logger.debug('Executing %s action' % action_name)
     try:
         if args['profile']:
             import cProfile
