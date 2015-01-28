@@ -148,3 +148,7 @@ def process_command_line():
             action_mod.main(**args)
     except Exception as ex:
         logging.error('Unexpected exception from action handler:', exc_info=ex)
+
+
+if __name__ == '__main__':
+    process_command_line()
