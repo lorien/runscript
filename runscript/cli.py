@@ -139,11 +139,13 @@ def process_command_line():
             profile_tree_file = 'var/%s.prof.out' % action_name
 
             prof = cProfile.Profile()
-            prof.runctx('action_mod.main(**args)',
-                        globals(), locals())
-            stats = pstats.Stats(prof)
-            stats.strip_dirs()
-            pyprof2calltree.convert(stats, profile_tree_file)
+            try:
+                prof.runctx('action_mod.main(**args)',
+                            globals(), locals())
+            finally:
+                stats = pstats.Stats(prof)
+                stats.strip_dirs()
+                pyprof2calltree.convert(stats, profile_tree_file)
         else:
             action_mod.main(**args)
     except Exception as ex:
