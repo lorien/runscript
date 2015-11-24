@@ -2,11 +2,10 @@ from setuptools import setup, find_packages
 import os
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
-version = __import__('runscript').__version__
 
 setup(
     name = 'runscript',
-    version = version,
+    version = '0.2.2',
     description = 'Simple script launcher',
     long_description = open(os.path.join(ROOT, 'README.rst')).read(),
     url = 'http://github.com/lorien/runscript',
