@@ -5,7 +5,7 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 
 setup(
     name = 'runscript',
-    version = '0.2.5',
+    version = '0.2.6',
     description = 'Simple script launcher',
     long_description = open(os.path.join(ROOT, 'README.rst')).read(),
     url = 'http://github.com/lorien/runscript',
