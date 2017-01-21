@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 import os
-from subprocess import check_output
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -33,9 +32,3 @@ setup(
         'Topic :: Utilities',
     ),
 )
-if os.name == 'posix':
-    run_script = check_output('/usr/bin/which run', shell=True)#.decode('utf-8').strip()
-    print('TYPE', type(run_script))
-    if os.path.exists(run_script):
-        print('Setting 755 permissions to %s' % run_script)
-        os.chmod(run_script, int('755', 8))
