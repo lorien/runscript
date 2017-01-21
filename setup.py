@@ -14,8 +14,11 @@ setup(
 
     packages = find_packages(),
     include_package_data = True,
-    scripts = ('bin/run',),
-
+    entry_points = {
+        'console_scripts': [
+            'run=runscript.cli:process_command_line',
+        ],
+    },
     license = "MIT",
     keywords = "script cli utility run launch task",
     classifiers = [
