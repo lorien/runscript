@@ -5,4 +5,7 @@
 *.egg-info/
 
 # setuptools
-dist/
+/dist/
+/.cache/
+/build/
+/.tox/
