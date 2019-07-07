@@ -129,27 +129,24 @@ def process_command_line():
         logging.debug('Trying to lock file: {}'.format(lock_path))
         assert_lock(lock_path)
 
-    try:
-        if args['profile']:
-            import cProfile
-            import pyprof2calltree
-            import pstats
+    if args['profile']:
+        import cProfile
+        import pyprof2calltree
+        import pstats
 
-            profile_file = 'var/%s.prof' % action_name
-            profile_tree_file = 'var/%s.prof.out' % action_name
+        profile_file = 'var/%s.prof' % action_name
+        profile_tree_file = 'var/%s.prof.out' % action_name
 
-            prof = cProfile.Profile()
-            try:
-                prof.runctx('action_mod.main(**args)',
-                            globals(), locals())
-            finally:
-                stats = pstats.Stats(prof)
-                stats.strip_dirs()
-                pyprof2calltree.convert(stats, profile_tree_file)
-        else:
-            action_mod.main(**args)
-    except Exception as ex:
-        logging.error('Unexpected exception from action handler:', exc_info=ex)
+        prof = cProfile.Profile()
+        try:
+            prof.runctx('action_mod.main(**args)',
+                        globals(), locals())
+        finally:
+            stats = pstats.Stats(prof)
+            stats.strip_dirs()
+            pyprof2calltree.convert(stats, profile_tree_file)
+    else:
+        action_mod.main(**args)
 
 
 if __name__ == '__main__':
