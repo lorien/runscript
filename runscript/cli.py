@@ -7,6 +7,8 @@ try:
     from ConfigParser import RawConfigParser, NoOptionError
 except ImportError:
     from configparser import RawConfigParser, NoOptionError
+import sys
+from traceback import format_exception
 
 from runscript.lock import assert_lock
 
@@ -68,7 +70,15 @@ def load_config():
     return config
     
 
+def custom_excepthook(etype, evalue, etb):
+    logging.fatal('\n'.join(format_exception(etype, evalue, etb)))
+
+
 def process_command_line():
+    # Use custom excepthook that prints traceback via logging system
+    # using FATAL level
+    sys.excepthook = custom_excepthook
+
     # Add current directory to python path
     cur_dir = os.path.realpath(os.getcwd())
     sys.path.insert(0, cur_dir)
