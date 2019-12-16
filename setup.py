@@ -17,6 +17,7 @@ setup(
     entry_points = {
         'console_scripts': [
             'run=runscript.cli:process_command_line',
+            'grun=runscript_gevent.cli:process_command_line',
         ],
     },
     license = "MIT",
