@@ -22,6 +22,7 @@ setup(
     },
     license = "MIT",
     keywords = "script cli utility run launch task",
+    install_requires=['setproctitle'],
     classifiers = [
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',

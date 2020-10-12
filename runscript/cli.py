@@ -9,6 +9,7 @@ except ImportError:
     from configparser import RawConfigParser, NoOptionError
 import sys
 from traceback import format_exception
+from setproctitle import setproctitle
 
 from runscript.lock import assert_lock
 
@@ -92,6 +93,9 @@ def process_command_line():
     parser.add_argument('--profile', action='store_true', default=False)
 
     args, trash = parser.parse_known_args()
+
+    # Update proc title
+    setproctitle('run_%s' % args.action)
 
     config = load_config()
     logging_level = getattr(logging, args.logging_level.upper())
