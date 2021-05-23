@@ -94,9 +94,6 @@ def process_command_line():
 
     args, trash = parser.parse_known_args()
 
-    # Update proc title
-    setproctitle('run_%s' % args.action)
-
     config = load_config()
     logging_level = getattr(logging, args.logging_level.upper())
     setup_logging(args.action, logging_level, clear_handlers=True)
@@ -127,6 +124,13 @@ def process_command_line():
     if hasattr(action_mod, 'setup_arg_parser'):
         action_mod.setup_arg_parser(parser)
     args_obj, trash = parser.parse_known_args()
+
+    # Update proc title
+    if hasattr(action_mod, 'get_proc_title'):
+        setproctitle(action_mod.get_proc_title(args_obj))
+    else:
+        setproctitle('run_%s' % args.action)
+
 
     args = vars(args_obj)
 
