@@ -100,11 +100,11 @@ def process_command_line():
 
     if config['global'].get('django_settings_module'):
         os.environ['DJANGO_SETTINGS_MODULE'] = config['global']['django_settings_module']
+
         # Disable django DEBUG feature to prevent memory leaks
         from django.conf import settings
         settings.DEBUG = False
 
-    if config['global'].get('django_setup') == 'yes':
         import django
         django.setup()
 
