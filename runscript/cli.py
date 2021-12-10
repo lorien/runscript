@@ -1,13 +1,14 @@
 import os
-from argparse import ArgumentParser
-import logging
 import sys 
 import imp
+import logging
+
 try:
     from ConfigParser import RawConfigParser, NoOptionError
 except ImportError:
     from configparser import RawConfigParser, NoOptionError
-import sys
+
+from argparse import ArgumentParser
 from traceback import format_exception
 from setproctitle import setproctitle
 
@@ -116,7 +117,12 @@ def process_command_line():
         imp_path = '%s.%s' % (path, action_name)
         if module_is_importable(imp_path):
             action_mod = __import__(imp_path, None, None, ['foo'])
-
+    else:
+        # If search path is blank, try to invoke 
+        # script directly, without namespaces
+        if module_is_importable(action_name):
+            action_mod = __import__(action_name, None, None, ['foo'])
+            
     if action_mod is None:
         sys.stderr.write('Could not find the package to import %s module\n' % action_name)
         sys.exit(1)
