@@ -11,3 +11,4 @@
 /.tox/
 /.hg/
 /script/
+.vscode/
