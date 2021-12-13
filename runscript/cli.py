@@ -104,7 +104,9 @@ def global_setup(args):
 
 def config_django_settings(args, config):
     if config["global"].get("django_settings_module"):
-        os.environ["DJANGO_SETTINGS_MODULE"] = config["global"]["django_settings_module"]
+        os.environ["DJANGO_SETTINGS_MODULE"] = config["global"][
+            "django_settings_module"
+        ]
 
         # Disable django DEBUG feature to prevent memory leaks
         import django
@@ -115,7 +117,7 @@ def config_django_settings(args, config):
         django.setup()
 
 
-def setup_import_paths(args, config):
+def setup_import_paths(args, config, parser=None):
     # Setup action handler
     action_name = args.action
     action_mod = None
@@ -136,14 +138,26 @@ def setup_import_paths(args, config):
         )
         sys.exit(1)
 
+    return action_mod
+
+
+def process_command_line():
+    parser = setup_arg_parser()
+    args, trash = parser.parse_known_args()
+    config = load_config()
+
+    # Configs
+    global_setup(args)
+    config_django_settings(args, config)
+    action_mod = setup_import_paths(args, config, parser=parser)
+
+    # Setup action handler
+    action_name = args.action
+
     if hasattr(action_mod, "setup_arg_parser"):
         action_mod.setup_arg_parser(parser)
+
     args_obj, trash = parser.parse_known_args()
-
-    args = vars(args_obj)
-
-    for key, val in config.get("script:%s" % action_name, {}).items():
-        args[key] = val
 
     # Update proc title
     if hasattr(action_mod, "get_proc_title"):
@@ -151,10 +165,11 @@ def setup_import_paths(args, config):
     else:
         setproctitle("run_%s" % args.action)
 
-    return action_mod
+    args = vars(args_obj)
 
+    for key, val in config.get("script:%s" % action_name, {}).items():
+        args[key] = val
 
-def setup_lock_key(action_mod, args, config):
     if hasattr(action_mod, "get_lock_key"):
         lock_key = action_mod.get_lock_key(**args)
     else:
@@ -165,8 +180,6 @@ def setup_lock_key(action_mod, args, config):
         logging.debug("Trying to lock file: {}".format(lock_path))
         assert_lock(lock_path)
 
-
-def setup_profile(action_mod, args, config):
     if args["profile"]:
         import cProfile
         import pyprof2calltree
@@ -184,19 +197,6 @@ def setup_profile(action_mod, args, config):
             pyprof2calltree.convert(stats, profile_tree_file)
     else:
         action_mod.main(**args)
-
-
-def process_command_line():
-    parser = setup_arg_parser()
-    args, trash = parser.parse_known_args()
-    config = load_config()
-
-    # Configs
-    global_setup(args)
-    config_django_settings(args, config)
-    action_mod = setup_import_paths(args, config)
-    setup_lock_key(action_mod, args, config)
-    setup_profile(action_mod, args, config)
 
 
 if __name__ == "__main__":
