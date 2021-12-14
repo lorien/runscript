@@ -28,3 +28,10 @@ OK, now you can run the following command from the console::
     $ run dump
 
 That's all :) Of course this is not the rocket science, but I found that this simple script launcher saved me a lot of time.
+
+### Note
+In order to be able to run any script from any package in the project, please create a `run.ini` file in project root and have this content:
+```
+[global]
+search_path=
+```
