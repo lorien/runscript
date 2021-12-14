@@ -70,6 +70,9 @@ def load_config():
             for key, val in parser.items(section):
                 config[section][key] = normalize_config_value(section, key, val)
 
+    # Remove empty paths if any
+    config['global']['search_path'] = list(filter(lambda x: len(x) > 0, config['global']['search_path']))
+
     return config
 
 
