@@ -36,6 +36,16 @@ homepage = "http://github.com/lorien/runscript"
 run = "runscript.cli:process_command_line"
 grun = "runscript_gevent.cli:process_command_line"
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["runscript", "runscript_gevent"]
+
+[tool.setuptools.package-data]
+"*" = ["py.typed"]
+
 [tool.isort]
 #known_first_party = ["project"]
 profile = "black"
@@ -46,11 +56,4 @@ line_length = 88
 # B101 assert_used
 # B410 Using HtmlElement to parse untrusted XML data
 skips = ["B101", "B410"]
-
-[build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
-[tool.flit.sdist]
-include = ["runscript/py.typed", "runscript_gevent/py.typed", "runscript/**/*.py", "runscript_gevent/**/*.py"]
 

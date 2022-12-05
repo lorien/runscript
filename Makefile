@@ -1,6 +1,6 @@
-.PHONY: bootstrap venv deps dirs clean upload test release check
+.PHONY: bootstrap venv deps dirs clean upload test release check build
 
-FILES_CHECK_MYPY = runscript runscript_gevent setup.py
+FILES_CHECK_MYPY = runscript runscript_gevent
 FILES_CHECK_ALL = $(FILES_CHECK_MYPY) tests
 
 bootstrap: venv deps dirs
@@ -26,7 +26,7 @@ test:
 	pytest
 
 release:
-	git push; git push --tags; rm dist/*; python3 setup.py clean sdist; twine upload dist/*
+	git push && git push --tags && make build && twin upload dist/*
 
 check:
 	echo "mypy" \
@@ -37,3 +37,8 @@ check:
 	&& flake8 -j auto --max-cognitive-complexity=11 $(FILES_CHECK_ALL) \
 	&& echo "bandit" \
 	&& bandit -qc pyproject.toml -r $(FILES_CHECK_ALL) \
+
+build:
+	rm -rf *.egg-info
+	rm dist/*
+	python -m build --sdist
