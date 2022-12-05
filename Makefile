@@ -1,6 +1,6 @@
 .PHONY: bootstrap venv deps dirs clean upload test release check build
 
-FILES_CHECK_MYPY = runscript runscript_gevent
+FILES_CHECK_MYPY = runscript
 FILES_CHECK_ALL = $(FILES_CHECK_MYPY) tests
 
 bootstrap: venv deps dirs

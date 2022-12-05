@@ -1,7 +1,6 @@
 pip
 bumpversion
 pytest
-gevent
 build
 twine
 

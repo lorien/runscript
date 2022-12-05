@@ -37,14 +37,13 @@ homepage = "http://github.com/lorien/runscript"
 
 [project.scripts]
 run = "runscript.cli:process_command_line"
-grun = "runscript_gevent.cli:process_command_line"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["runscript", "runscript_gevent"]
+packages = ["runscript"]
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
@@ -62,10 +61,6 @@ skips = ["B101", "B410"]
 
 [[tool.mypy.overrides]]
 module = "procstat"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "gevent"
 ignore_missing_imports = true
 
 [tool.pylint.main]
