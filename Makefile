@@ -23,7 +23,10 @@ test:
 	pytest
 
 release:
-	git push && git push --tags && make build && twine upload dist/*
+	git push \
+	&& git push --tags \
+	&& make build \
+	&& twine upload dist/*
 
 check:
 	echo "mypy" \
