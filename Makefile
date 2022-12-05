@@ -19,14 +19,11 @@ clean:
 	find -name '*.pyc' -delete
 	find -name '*.swp' -delete
 
-upload:
-	git push --tags; python setup.py clean sdist upload
-
 test:
 	pytest
 
 release:
-	git push && git push --tags && make build && twin upload dist/*
+	git push && git push --tags && make build && twine upload dist/*
 
 check:
 	echo "mypy" \
