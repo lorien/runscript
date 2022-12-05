@@ -20,3 +20,4 @@ syntax:regexp
 ^\.git/
 ^\.cache/
 ^dist/
+^\.mypy_cache/

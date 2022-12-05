@@ -2,6 +2,7 @@ pip
 bumpversion
 pytest
 gevent
+flit
 
 # Types
 types-setuptools
