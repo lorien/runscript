@@ -29,6 +29,9 @@ classifiers = [
 ]
 dependencies = ["setproctitle"]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.urls]
 homepage = "http://github.com/lorien/runscript"
 
@@ -57,3 +60,35 @@ line_length = 88
 # B410 Using HtmlElement to parse untrusted XML data
 skips = ["B101", "B410"]
 
+[[tool.mypy.overrides]]
+module = "procstat"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "gevent"
+ignore_missing_imports = true
+
+[tool.pylint.main]
+jobs=4
+disable="missing-docstring,broad-except,too-few-public-methods,consider-using-f-string,fixme"
+variable-rgx="[a-z_][a-z0-9_]{1,30}$"
+attr-rgx="[a-z_][a-z0-9_]{1,30}$"
+argument-rgx="[a-z_][a-z0-9_]{1,30}$"
+max-line-length=88
+max-args=9
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py3
+isolated_build = True
+
+[testenv]
+commands =
+    pytest {posargs}
+deps =
+    -e .[test]
+"""
