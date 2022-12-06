@@ -6,50 +6,37 @@ import os.path
 import sys
 from typing import BinaryIO
 
+if os.name == "nt":
+    from fcntl import LOCK_EX, LOCK_NB, flock
+if os.name == "nt":
+    import portalocker  # pylint: disable=import-error
+
 LOG = logging.getLogger("runscript.lock")
 LOCKS = {}
 
 
-class LockFailed(Exception):
+class LockFileError(Exception):
     pass
 
 
-def lock_windows_file_handler(file_handler: BinaryIO) -> None:
-    # Code for NT systems got from: http://code.activestate.com/recipes/65203/
-    # pylint: disable=import-outside-toplevel,import-error
-    import pywintypes  # type: ignore
-    import win32con  # type: ignore
-    import win32file  # type: ignore
+class UnsupportedPlatform(Exception):
+    pass
 
-    const_lock_ex = win32con.LOCKFILE_EXCLUSIVE_LOCK
-    const_lock_nb = win32con.LOCKFILE_FAIL_IMMEDIATELY
 
-    # is there any reason not to reuse the following structure?
-    __overlapped = pywintypes.OVERLAPPED()
-
-    hfile = win32file._get_osfhandle(  # pylint: disable=protected-access
-        file_handler.fileno()
-    )
+def lock_file_nt(file: BinaryIO) -> None:
     try:
-        win32file.LockFileEx(
-            hfile, const_lock_ex | const_lock_nb, 0, -0x10000, __overlapped
+        portalocker.lock(
+            file, portalocker.LockFlags.EXCLUSIVE | portalocker.LockFalgs.NON_BLOCKING
         )
-    except pywintypes.error as ex:
-        # error: (33, 'LockFileEx', 'The process cannot access
-        # the file because another process has locked a portion
-        # of the file.')
-        if ex[0] == 33:
-            raise LockFailed from ex
+    except portalocker.LockException as ex:
+        raise LockFileError from ex
 
 
-def lock_unix_file_handler(file_handler: BinaryIO) -> None:
-    # pylint: disable=import-outside-toplevel
-    from fcntl import LOCK_EX, LOCK_NB, flock
-
+def lock_file_posix(file: BinaryIO) -> None:
     try:
-        flock(file_handler.fileno(), LOCK_EX | LOCK_NB)
-    except Exception as ex:
-        raise LockFailed from ex
+        flock(file.fileno(), LOCK_EX | LOCK_NB)
+    except OSError as ex:
+        raise LockFileError from ex
 
 
 def set_lock(fname: str) -> bool:
@@ -59,20 +46,24 @@ def set_lock(fname: str) -> bool:
     Return the status of operation.
     """
     # pylint: disable=consider-using-with
-    file_handler = open(fname, "wb")  # noqa: SIM115
-    # save reference to lock file handle to not close it
+    file = open(fname, "wb")  # noqa: SIM115
+    # save reference to file handler so that GC does not close it
     # when function execution ends
-    LOCKS[fname] = file_handler
+    LOCKS[fname] = file
 
     try:
         if os.name == "nt":
-            lock_windows_file_handler(file_handler)
+            lock_file_nt(file)
+        elif os.name == "posix":
+            lock_file_posix(file)
         else:
-            lock_unix_file_handler(file_handler)
-    except LockFailed:
+            raise UnsupportedPlatform(
+                "Unsupported operating system: {}".format(os.name)
+            )
+    except LockFileError:
         return False
-    file_handler.write(str(os.getpid()).encode())
-    file_handler.flush()
+    file.write(str(os.getpid()).encode())
+    file.flush()
     return True
 
 

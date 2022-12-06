@@ -27,7 +27,10 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed",
 ]
-dependencies = ["setproctitle"]
+dependencies = [
+    "setproctitle",
+    "portalocker; platform_system==Windows"
+]
 
 [project.optional-dependencies]
 test = ["pytest"]
@@ -61,6 +64,10 @@ skips = ["B101", "B410"]
 
 [[tool.mypy.overrides]]
 module = "procstat"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "portalocker"
 ignore_missing_imports = true
 
 [tool.pylint.main]

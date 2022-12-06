@@ -4,7 +4,7 @@ import os
 import sys
 from argparse import ArgumentParser
 from traceback import format_exception
-from types import TracebackType
+from types import ModuleType, TracebackType
 from typing import Optional
 
 from setproctitle import setproctitle
@@ -19,6 +19,10 @@ DEFAULT_CONFIG = {
 LOG = logging.getLogger(__name__)
 
 
+class ModuleNotFound(Exception):
+    pass
+
+
 def setup_logging(clear_handlers: bool = False) -> None:
     root = logging.getLogger()
     if clear_handlers:
@@ -30,7 +34,7 @@ def setup_logging(clear_handlers: bool = False) -> None:
     root.addHandler(hdl)
 
 
-def module_is_importable(path: str) -> bool:
+def is_importable_module(path: str) -> bool:
     mod_names = path.split(".")
     wtf = None
     for mod_name in mod_names:
@@ -49,49 +53,52 @@ def custom_excepthook(
     LOG.fatal("\n".join(format_exception(etype, evalue, etb)))
 
 
+def load_module(locations: list[str], module_name: str) -> ModuleType:
+    for path in locations:
+        imp_path = "%s.%s" % (path, module_name)
+        if is_importable_module(imp_path):
+            return __import__(imp_path, None, None, ["foo"])
+    raise ModuleNotFound
+
+
+def process_lock_key(lock_key: str) -> None:
+    lock_path = "var/run/%s.lock" % lock_key
+    LOG.debug("Locking file: %s", lock_path)
+    assert_lock(lock_path)
+
+
 def process_command_line() -> None:
     # Use custom excepthook that prints traceback via logging system
     # using FATAL level
     sys.excepthook = custom_excepthook
     # Add current directory to python path
-    cur_dir = os.path.realpath(os.getcwd())
-    sys.path.insert(0, cur_dir)
-    parser = ArgumentParser()
+    sys.path.insert(0, os.path.realpath(os.getcwd()))
+    parser = ArgumentParser(allow_abbrev=False)
     parser.add_argument("action", type=str)
     parser.add_argument("--lock-key")
-    known_opts, _ = parser.parse_known_args()
+    opts, _ = parser.parse_known_args()
     config = DEFAULT_CONFIG
     setup_logging(clear_handlers=True)
     # Setup action handler
-    action_name = known_opts.action
-    action_mod = None
-    for path in config["global"]["search_path"]:
-        imp_path = "%s.%s" % (path, action_name)
-        if module_is_importable(imp_path):
-            action_mod = __import__(imp_path, None, None, ["foo"])
-    if action_mod is None:
-        sys.stderr.write(
-            "Could not find the package to import %s module\n" % action_name
-        )
+    try:
+        script_module = load_module(config["global"]["search_path"], opts.action)
+    except ModuleNotFound:
+        sys.stderr.write("Could not find or load module: {}\n".format(opts.action))
         sys.exit(1)
-    if hasattr(action_mod, "setup_arg_parser"):
-        action_mod.setup_arg_parser(parser)
+    if hasattr(script_module, "setup_arg_parser"):
+        script_module.setup_arg_parser(parser)
     opts, _ = parser.parse_known_args()
     # Update proc title
-    if hasattr(action_mod, "get_proc_title"):
-        setproctitle(action_mod.get_proc_title(opts))
+    if hasattr(script_module, "get_proc_title"):
+        setproctitle(script_module.get_proc_title(opts))
     else:
         setproctitle("run_%s" % opts.action)
     func_args = vars(opts)
-    if hasattr(action_mod, "get_lock_key"):
-        lock_key = action_mod.get_lock_key(**func_args)
-    else:
-        lock_key = func_args["lock_key"]
-    if lock_key is not None:
-        lock_path = "var/run/%s.lock" % lock_key
-        LOG.debug("Locking file: %s", lock_path)
-        assert_lock(lock_path)
-    action_mod.main(**func_args)
+    if hasattr(script_module, "get_lock_key"):
+        func_args["lock_key"] = script_module.get_lock_key(**func_args)
+    if func_args["lock_key"]:
+        process_lock_key(func_args["lock_key"])
+    script_module.main(**func_args)
 
 
 if __name__ == "__main__":
