@@ -1,8 +1,9 @@
-import imp  # pylint: disable=deprecated-module
 import logging
 import os
 import sys
 from argparse import ArgumentParser, Namespace
+from importlib import import_module
+from importlib.util import find_spec
 from traceback import format_exception
 from types import ModuleType, TracebackType
 from typing import Optional, cast
@@ -24,27 +25,14 @@ class ModuleNotFound(Exception):
 
 
 def setup_logging(clear_handlers: bool = False) -> None:
-    root = logging.getLogger()
+    root_logger = logging.getLogger()
     if clear_handlers:
-        for hdl in root.handlers:
-            root.removeHandler(hdl)
-    root.setLevel(logging.DEBUG)
+        for hdl in root_logger.handlers:
+            root_logger.removeHandler(hdl)
+    root_logger.setLevel(logging.DEBUG)
     hdl = logging.StreamHandler()
     hdl.setLevel(logging.DEBUG)
-    root.addHandler(hdl)
-
-
-def is_importable_module(path: str) -> bool:
-    mod_names = path.split(".")
-    wtf = None
-    for mod_name in mod_names:
-        try:
-            _, mod_path, _ = imp.find_module(mod_name, wtf)
-        except ImportError:
-            return False
-        else:
-            wtf = [mod_path]
-    return True
+    root_logger.addHandler(hdl)
 
 
 def custom_excepthook(
@@ -56,8 +44,8 @@ def custom_excepthook(
 def locate_module(locations: list[str], module_name: str) -> ModuleType:
     for path in locations:
         imp_path = "%s.%s" % (path, module_name)
-        if is_importable_module(imp_path):
-            return __import__(imp_path, None, None, ["foo"])
+        if find_spec(imp_path):
+            return import_module(imp_path)
     raise ModuleNotFound
 
 
@@ -107,6 +95,8 @@ def process_command_line() -> None:
     # using FATAL level
     sys.excepthook = custom_excepthook
     # Add current directory to python path
+    # to make working all imports from local packages which are not installed
+    # to site-packages
     sys.path.insert(0, os.path.realpath(os.getcwd()))
     parser = ArgumentParser(allow_abbrev=False)
     opts = process_main_cli_args(parser)
