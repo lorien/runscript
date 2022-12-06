@@ -29,7 +29,7 @@ classifiers = [
 ]
 dependencies = [
     "setproctitle",
-    "portalocker; platform_system==Windows"
+    'portalocker; platform_system=="Windows"'
 ]
 
 [project.optional-dependencies]

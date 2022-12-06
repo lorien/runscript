@@ -40,5 +40,5 @@ check:
 
 build:
 	rm -rf *.egg-info
-	rm dist/*
+	rm -rf dist/*
 	python -m build --sdist
