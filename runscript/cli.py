@@ -2,10 +2,10 @@ import imp  # pylint: disable=deprecated-module
 import logging
 import os
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from traceback import format_exception
 from types import ModuleType, TracebackType
-from typing import Optional
+from typing import Optional, cast
 
 from setproctitle import setproctitle
 
@@ -53,7 +53,7 @@ def custom_excepthook(
     LOG.fatal("\n".join(format_exception(etype, evalue, etb)))
 
 
-def load_module(locations: list[str], module_name: str) -> ModuleType:
+def locate_module(locations: list[str], module_name: str) -> ModuleType:
     for path in locations:
         imp_path = "%s.%s" % (path, module_name)
         if is_importable_module(imp_path):
@@ -67,37 +67,60 @@ def process_lock_key(lock_key: str) -> None:
     assert_lock(lock_path)
 
 
+def update_process_title(script_module: ModuleType, opts: Namespace) -> None:
+    if hasattr(script_module, "get_proc_title"):
+        title = script_module.get_proc_title(opts)
+    else:
+        title = "run_{}".format(opts.action)
+    setproctitle(title)
+
+
+def process_lock(script_module: ModuleType, opts: Namespace) -> Optional[str]:
+    if hasattr(script_module, "get_lock_key"):
+        lock_key = script_module.get_lock_key(opts)
+    else:
+        lock_key = opts.lock_key
+    if lock_key:
+        process_lock_key(lock_key)
+    return cast(Optional[str], lock_key)
+
+
+def process_main_cli_args(parser: ArgumentParser) -> Namespace:
+    parser.add_argument("action", type=str)
+    parser.add_argument("--lock-key", type=str)
+    opts, _ = parser.parse_known_args()
+    return opts
+
+
+def parse_script_cli_args(
+    parser: ArgumentParser, script_module: ModuleType
+) -> Namespace:
+    if hasattr(script_module, "setup_arg_parser"):
+        script_module.setup_arg_parser(parser)
+    opts, _ = parser.parse_known_args()
+    return opts
+
+
 def process_command_line() -> None:
+    setup_logging(clear_handlers=True)
     # Use custom excepthook that prints traceback via logging system
     # using FATAL level
     sys.excepthook = custom_excepthook
     # Add current directory to python path
     sys.path.insert(0, os.path.realpath(os.getcwd()))
     parser = ArgumentParser(allow_abbrev=False)
-    parser.add_argument("action", type=str)
-    parser.add_argument("--lock-key")
-    opts, _ = parser.parse_known_args()
-    config = DEFAULT_CONFIG
-    setup_logging(clear_handlers=True)
-    # Setup action handler
+    opts = process_main_cli_args(parser)
     try:
-        script_module = load_module(config["global"]["search_path"], opts.action)
+        script_module = locate_module(
+            DEFAULT_CONFIG["global"]["search_path"], opts.action
+        )
     except ModuleNotFound:
         sys.stderr.write("Could not find or load module: {}\n".format(opts.action))
         sys.exit(1)
-    if hasattr(script_module, "setup_arg_parser"):
-        script_module.setup_arg_parser(parser)
-    opts, _ = parser.parse_known_args()
-    # Update proc title
-    if hasattr(script_module, "get_proc_title"):
-        setproctitle(script_module.get_proc_title(opts))
-    else:
-        setproctitle("run_%s" % opts.action)
+    opts = parse_script_cli_args(parser, script_module)
+    update_process_title(script_module, opts)
     func_args = vars(opts)
-    if hasattr(script_module, "get_lock_key"):
-        func_args["lock_key"] = script_module.get_lock_key(**func_args)
-    if func_args["lock_key"]:
-        process_lock_key(func_args["lock_key"])
+    func_args["lock_key"] = process_lock(script_module, opts)
     script_module.main(**func_args)
 
 
