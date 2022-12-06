@@ -1,7 +1,7 @@
 [project]
 
 name = "runscript"
-version = "0.3.0"
+version = "0.3.1"
 description = "Simple script launcher"
 readme = "README.md"
 requires-python = ">=3.7"
