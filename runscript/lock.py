@@ -6,9 +6,9 @@ import os.path
 import sys
 from typing import BinaryIO
 
-if os.name == "nt":
+if os.name != "nt":
     from fcntl import LOCK_EX, LOCK_NB, flock
-if os.name == "nt":
+else:
     import portalocker  # pylint: disable=import-error
 
 LOG = logging.getLogger("runscript.lock")
