@@ -105,7 +105,7 @@ def process_command_line() -> None:
             DEFAULT_CONFIG["global"]["search_path"], opts.action
         )
     except ModuleNotFound:
-        sys.stderr.write("Could not find or load module: {}\n".format(opts.action))
+        LOG.exception("Could not load module %s", opts.action)
         sys.exit(1)
     opts = parse_script_cli_args(parser, script_module)
     update_process_title(script_module, opts)
