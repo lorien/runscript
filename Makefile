@@ -3,7 +3,7 @@
 FILES_CHECK_MYPY = runscript
 FILES_CHECK_ALL = $(FILES_CHECK_MYPY) tests
 
-bootstrap: venv deps dirs
+init: venv deps dirs
 
 venv:
 	virtualenv -p python3 .env
@@ -25,7 +25,9 @@ test:
 release:
 	git push \
 	&& git push --tags \
-	&& make build \
+	&& rm -rf *.egg-info \
+	&& rm -rf dist/* \
+	&& python -m build --sdist \
 	&& twine upload dist/*
 
 check:
@@ -37,8 +39,3 @@ check:
 	&& flake8 -j auto --max-cognitive-complexity=11 $(FILES_CHECK_ALL) \
 	&& echo "bandit" \
 	&& bandit -qc pyproject.toml -r $(FILES_CHECK_ALL) \
-
-build:
-	rm -rf *.egg-info
-	rm -rf dist/*
-	python -m build --sdist
