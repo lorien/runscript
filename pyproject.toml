@@ -29,7 +29,8 @@ classifiers = [
 ]
 dependencies = [
     "setproctitle",
-    'portalocker; platform_system=="Windows"'
+    'portalocker; platform_system=="Windows"',
+    'tomli; python_version < "3.11"'
 ]
 
 [project.optional-dependencies]

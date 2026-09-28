@@ -29,3 +29,15 @@ $ run dump
 ```
 
 That's all :) Of course this is not the rocket science, but I found that this simple script launcher saved me a lot of time.
+
+
+## Configuration
+
+The `run` utility reads the `[tool.runscript]` section from `pyproject.toml` in the current directory (if the file exists). Currently the only supported option is `logging_level`, which sets the default logging level used by the `run` utility:
+
+```toml
+[tool.runscript]
+logging_level = "INFO"
+```
+
+The value must be a string and can be any standard Python logging level name (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). The default is `DEBUG`.

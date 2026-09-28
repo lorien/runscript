@@ -8,6 +8,11 @@ from traceback import format_exception
 from types import ModuleType, TracebackType
 from typing import Optional, cast
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11
+    import tomli as tomllib  # type: ignore[no-redef]
+
 from setproctitle import setproctitle
 
 from runscript.lock import assert_lock
@@ -19,20 +24,64 @@ DEFAULT_CONFIG = {
 }
 LOG = logging.getLogger(__name__)
 
+PYPROJECT_PATH = "pyproject.toml"
+DEFAULT_LOGGING_LEVEL = logging.DEBUG
+
 
 class ModuleNotFound(Exception):
     pass
 
 
-def setup_logging(clear_handlers: bool = False) -> None:
+def read_runscript_config(path: str = PYPROJECT_PATH) -> dict[str, object]:
+    try:
+        with open(path, "rb") as fp:
+            data = tomllib.load(fp)
+    except FileNotFoundError:
+        return {}
+    except tomllib.TOMLDecodeError:
+        LOG.warning("Could not parse %s, ignoring runscript config", path)
+        return {}
+    tool_config = data.get("tool", {})
+    if not isinstance(tool_config, dict):
+        return {}
+    runscript_config = tool_config.get("runscript", {})
+    if not isinstance(runscript_config, dict):
+        return {}
+    return runscript_config
+
+
+def resolve_logging_level(config: dict[str, object]) -> int:
+    level = config.get("logging_level")
+    if level is None:
+        return DEFAULT_LOGGING_LEVEL
+    if not isinstance(level, str):
+        LOG.warning(
+            "pyproject.toml: runscript.logging_level must be a string, using %s",
+            logging.getLevelName(DEFAULT_LOGGING_LEVEL),
+        )
+        return DEFAULT_LOGGING_LEVEL
+    resolved = logging.getLevelName(level.upper())
+    if not isinstance(resolved, int):
+        LOG.warning(
+            "pyproject.toml: unknown runscript.logging_level %r, using %s",
+            level,
+            logging.getLevelName(DEFAULT_LOGGING_LEVEL),
+        )
+        return DEFAULT_LOGGING_LEVEL
+    return resolved
+
+
+def setup_logging(clear_handlers: bool = False, level: Optional[int] = None) -> None:
     root_logger = logging.getLogger()
     if clear_handlers:
         for hdl in root_logger.handlers:
             root_logger.removeHandler(hdl)
-    root_logger.setLevel(logging.DEBUG)
     hdl = logging.StreamHandler()
-    hdl.setLevel(logging.DEBUG)
     root_logger.addHandler(hdl)
+    if level is None:
+        level = resolve_logging_level(read_runscript_config())
+    root_logger.setLevel(level)
+    hdl.setLevel(level)
 
 
 def custom_excepthook(
